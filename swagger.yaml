@@ -1,0 +1,23 @@
+swagger: '2.0'
+info:
+  title: test
+paths:
+  /:
+    get:
+      responses:
+        '200':
+          description: ok
+      x-amazon-apigateway-auth:
+        type: none
+      x-amazon-apigateway-integration:
+        type: aws
+        #uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<my_account_id>:function:hocus_5f9s1xy8pd_controller_listFish/invocations
+        #httpMethod: GET
+        uri: arn:aws:apigateway:$AWSRegion:lambda:path/2015-03-31/functions/$LambdaArn/invocations
+        requestTemplates:
+          application/json:
+            http_method: $context.httpMethod
+            body: $input.json('$')
+        responses:
+          default:
+            statusCode: '200'

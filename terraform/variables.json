@@ -1,0 +1,13 @@
+{
+  "GeneralName": "Lambda-test-apigateway",
+  "GeneralDiskSize": "30",
+  "GeneralEmail": "jochen@mariekerke.be",
+  "GeneralSms": "0032473716195",
+  "AWSAccountId": "292242131230",
+  "AWSMainUser": "leynebe",
+  "AWSRegion": "eu-west-1",
+  "AWSInstanceType": "t2.small",
+  "AWSKeyName": "sshKeyPairBen",
+  "AWSZoneId": "Z2Y0FR6T1YPX1M",
+  "AWSAsgAmountDesired": "1"
+}

@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  ApiGatewayApi:
+    Properties:
+      DefinitionUri: s3://jochen-lambda-test/f62cb1272f9c31c2a3a347b7ec596ffe
+      StageName: Prod
+      Variables:
+        LambdaFunctionName:
+          Ref: lambdaGatewayApi
+    Type: AWS::Serverless::Api
+  lambdaGatewayApi:
+    Properties:
+      CodeUri: s3://jochen-lambda-test/9cd62b5d28abd0cdf856f918b4a7812d
+      Environment:
+        Variables:
+          S3_BUCKET: jochen-lambda-test
+      Events:
+        AddPhotoApi:
+          Properties:
+            Method: get
+            Path: /
+            RestApiId:
+              Ref: ApiGatewayApi
+          Type: Api
+      Handler: index.handler
+      Runtime: nodejs6.10
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

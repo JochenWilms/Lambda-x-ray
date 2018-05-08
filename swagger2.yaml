@@ -1,0 +1,21 @@
+swagger: '2.0'
+info:
+  title: fishstore
+paths:
+  /signup:
+    get:
+      responses:
+        '200':
+          description: ok
+      x-amazon-apigateway-auth:
+        type: none
+      x-amazon-apigateway-integration:
+        type: aws
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<my_account_id>:function:hocus_5f9s1xy8pd_controller_listFish/invocations
+        httpMethod: GET
+        credentials: arn:aws:iam::<my_account_id>:role/ExecLambdaRole
+        requestTemplates:
+          application/json: Empty
+        responses:
+          default:
+            statusCode: '200'
