@@ -1,23 +1,67 @@
 swagger: '2.0'
 info:
   title: test
+schemes:
+- https
+basePath: /
+produces:
+  - application/json
 paths:
-  /:
+  /pets:
     get:
-      responses:
-        '200':
-          description: ok
+      summary: Get pet by id
+      description: Returns a pet definition based on the given id
       x-amazon-apigateway-auth:
-        type: none
+        type: aws_iam
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      tags:
+        - Pet Store
       x-amazon-apigateway-integration:
         type: aws
-        #uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:<my_account_id>:function:hocus_5f9s1xy8pd_controller_listFish/invocations
-        #httpMethod: GET
-        uri: arn:aws:apigateway:$AWSRegion:lambda:path/2015-03-31/functions/$LambdaArn/invocations
+        uri: arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:XXXXXXXXXXXX:function:YOUR_FUNCTION_NAME/invocations
+        credentials: arn:aws:iam::*:user/*
+        httpMethod: POST
         requestTemplates:
-          application/json:
-            http_method: $context.httpMethod
-            body: $input.json('$')
+          application/json: |
+            {
+              "http_method": "$context.httpMethod",
+              "body":$input.json('$')
+            }
         responses:
-          default:
-            statusCode: '200'
+          "default":
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+          "BAD.*":
+            statusCode: "400"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+          "INT.*":
+            statusCode: "500"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+      responses:
+        200:
+          description: A pet
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            $ref: '#/definitions/Pet'
+        400:
+          description: Bad request
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Internal error
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+          schema:
+            $ref: '#/definitions/Error'

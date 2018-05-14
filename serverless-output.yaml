@@ -2,15 +2,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   ApiGatewayApi:
     Properties:
-      DefinitionUri: s3://jochen-lambda-test/f62cb1272f9c31c2a3a347b7ec596ffe
-      StageName: Prod
+      DefinitionUri: s3://jochen-lambda-test/ecbb8d11bbfed14a9403611f98dc5a58
+      StageName: test
       Variables:
         LambdaFunctionName:
-          Ref: lambdaGatewayApi
+          Ref: lambda
     Type: AWS::Serverless::Api
-  lambdaGatewayApi:
+  lambda:
     Properties:
-      CodeUri: s3://jochen-lambda-test/9cd62b5d28abd0cdf856f918b4a7812d
+      CodeUri: s3://jochen-lambda-test/6dae6f1e9f135fac4c76269df3b0e29b
       Environment:
         Variables:
           S3_BUCKET: jochen-lambda-test
@@ -18,11 +18,14 @@ Resources:
         AddPhotoApi:
           Properties:
             Method: get
-            Path: /
+            Path: /pets
             RestApiId:
               Ref: ApiGatewayApi
           Type: Api
+      FunctionName: jochen-test-stack
       Handler: index.handler
       Runtime: nodejs6.10
+      TracingConfig:
+        Mode: Active
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31
