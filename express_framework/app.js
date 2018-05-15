@@ -46,7 +46,7 @@ function genKey() {
 function getS3Object(event,data){
     var key = "2018:05:08:07:16:34";
     if(event.key){
-        key = event.body.key;
+        key = event.key;
     }
     s3.getObject({
             Bucket: bucketName,
