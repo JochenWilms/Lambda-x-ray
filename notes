@@ -1,0 +1,12 @@
+credentials voor cloudformation...
+steven zei mu gebruiken: https://github.com/stelligent/mu
+
+iopipe alternatief voor cloudwatch:
+https://www.iopipe.com/
+
+
+nuttige links:
+loggings en metrics
+-https://theburningmonk.com/2017/08/centralised-logging-for-aws-lambda/
+-https://theburningmonk.com/2017/09/tips-and-tricks-for-logging-and-monitoring-aws-lambda-functions/
+-https://theburningmonk.com/2017/09/capture-and-forward-correlation-ids-through-different-lambda-event-sources/
