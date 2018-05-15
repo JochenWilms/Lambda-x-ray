@@ -43,18 +43,21 @@ function genKey() {
 
 }
 
-function getS3Object(event,data){
+function getS3Object(event,res){
     var key = "2018:05:08:07:16:34";
     if(event.key){
         key = event.key;
     }
     s3.getObject({
-            Bucket: bucketName,
-            Key: key
-        }, function(resp) {
-            data = resp.data;
-            console.log(resp);
-        });
+        Bucket: bucketName,
+        Key: key
+    }, function(err, data) {
+        // Handle any error and exit
+        if (err)
+            console.log(err);
+        let dataobject = data.Body.toString('utf-8');
+        res.json(dataobject);
+    });
 }
 
 function putS3Object(event){
@@ -123,20 +126,29 @@ function mysqlCall(){
 const awsServerlessExpressMiddleware = require('aws-serverless-express/middleware')
 app.use(awsServerlessExpressMiddleware.eventContext())
 
+app.use(AWSXRay.express.openSegment('MyApp'));
 
 app.get('/', (req, res) => {
-    console.log(req);
-    var data;
-    getS3Object(req.apiGateway.event,data)
-    res.send(req.apiGateway.event);
+
+    mysqlCall();
+    HttpCall();
+    if(req.apiGateway.event.store){
+        putS3Object(req.apiGateway.event)
+        res.json(req.apiGateway.event);
+    }else{
+        var data;
+        getS3Object(req.apiGateway.event,res)
+
+    }
+
 })
 
 app.post('/', (req, res) => {
-    //mysqlCall();
-    //HttpCall();
-    putS3Object(req.apiGateway.event)
-    res.json(req.apiGateway.event);
+    mysqlCall();
+    HttpCall();
+
 })
 
+app.use(AWSXRay.express.closeSegment());
 
 module.exports = app
