@@ -7,6 +7,7 @@
     "aws-serverless-express": "^3.2.0",
     "aws-xray-sdk": "^1.2.0",
     "aws-xray-sdk-core": "^1.1.2",
+    "body-parser": "^1.18.2",
     "chance": "^1.0.16",
     "express": "^4.16.3",
     "express-generator": "^4.16.0",
