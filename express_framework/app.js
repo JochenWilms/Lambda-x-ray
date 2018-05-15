@@ -1,5 +1,6 @@
 'use strict'
 const startTime = process.hrtime();
+var coldStart = true;
 const AWSXRay = require('aws-xray-sdk');
 const AWS = AWSXRay.captureAWS(require('aws-sdk'));
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
@@ -8,9 +9,31 @@ const http =require('http');
 const mysql = AWSXRay.captureMySQL(require('mysql'));
 const pg = AWSXRay.capturePostgres(require('pg'));
 
+//express framewor
 const express = require('express')
-
 const app = express()
+//adding cloudwatch metrics
+var metric = {
+  MetricData: [ // required
+    {
+      MetricName: 'metric_test', // required
+     /* Dimensions: [
+        {
+          Name: 'URL', // required
+          Value: "" // required
+        },
+      // more items
+      ],*/
+      Timestamp: new Date(),
+      Unit: 'count',
+      Value: 0
+    },
+    /* more items */
+  ],
+  Namespace: 'lambda_new_metrics' /* required */
+};
+
+const cloudwatch = new AWS.CloudWatch({region: 'eu-west-1'});
 
 
 var bucketName = process.env.S3_BUCKET;
@@ -123,6 +146,31 @@ function mysqlCall(){
    console.log("end mysql");
 }
 
+function test_metric(name,value,unit){
+    metric.MetricData[0].Unit =unit;
+    metric.MetricData[0].MetricName = name;
+    metric.MetricData[0].Value = value;
+    cloudwatch.putMetricData(metric, (err, data) => {
+        if (err) {
+            console.log(err, err.stack); // an error occurred
+          } else {
+            console.log(data);           // successful response
+        }
+    });
+}
+
+function handle_coldstart(){
+    if (coldStart) {
+      var diff = process.hrtime(startTime);
+      console.log("Cold Start, First time the handler was called since this function was deployed in this container");
+      console.log("time to load all packages:  %dms", ((diff[0]*1e9 + diff[1])/1000000));
+
+      //we kan make a coldstart metric
+      test_metric("coldStart",((diff[0]*1e9 + diff[1])/1000000),"ms"); // in miliseconds
+  }
+  coldStart = false;
+}
+
 const awsServerlessExpressMiddleware = require('aws-serverless-express/middleware')
 app.use(awsServerlessExpressMiddleware.eventContext())
 
@@ -130,16 +178,21 @@ app.use(AWSXRay.express.openSegment('MyApp'));
 
 app.get('/', (req, res) => {
 
+    handle_coldstart();
+
     mysqlCall();
     HttpCall();
     if(req.apiGateway.event.store){
-        putS3Object(req.apiGateway.event)
+
+        putS3Object(req.apiGateway.event);
         res.json(req.apiGateway.event);
     }else{
         var data;
         getS3Object(req.apiGateway.event,res)
 
     }
+    test_metric("test_metric",10,"count");
+
 
 })
 

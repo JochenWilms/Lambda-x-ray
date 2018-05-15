@@ -19,3 +19,9 @@ const binaryMimeTypes = [
 ]
 const server = awsServerlessExpress.createServer(app, null, []);
 exports.handler = (event, context) => awsServerlessExpress.proxy(server, event, context)
+if (coldStart) {
+    var diff = process.hrtime(startTime);
+    console.log("Cold Start, First time the handler was called since this function was deployed in this container");
+    console.log("time to load all packages: %ds %dms", diff[0], diff[1]/1000000);
+}
+coldStart = false;
