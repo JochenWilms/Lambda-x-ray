@@ -16,9 +16,6 @@ var bucketName = process.env.S3_BUCKET;
 
 
 function genKey() {
-    var segment = new AWSXRay.Segment(name, [optional root ID], [optional parent ID]);
-    AWSXRay.setSegment(segment);
-
     var date = new Date();
 
     var hour = date.getHours();
@@ -42,7 +39,7 @@ function genKey() {
 
 }
 
-function getS3Object(event,callback){
+function getS3Object(event,context){
     var key = "2018:05:08:07:16:34";
     if(event.body.key){
         key = event.body.key;
@@ -56,11 +53,11 @@ function getS3Object(event,callback){
                 console.log(err);
             let dataobject = data.Body.toString('utf-8');
             console.log(dataobject);
-            callback(null,dataobject);
+            context.succeed(dataobject);
         });
 }
 
-function putS3Object(event,callback){
+function putS3Object(event){
         s3.putObject({
             Bucket: bucketName,
             Key: genKey(),
@@ -68,7 +65,7 @@ function putS3Object(event,callback){
         },function (resp) {
             //console.log(arguments);
             console.log('Successfully uploaded package.');
-            callback(null, JSON.stringify(event));
+
         });
 }
 
@@ -132,22 +129,36 @@ function mysqlCall(){
 
 
 // instantiate the iopipe library
-var iopipe = require('@iopipe/iopipe')({ token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODUzOTI1Mi0zZmQ4LTQxNDctOTYwMi0yZjVjYWZjYzg5MzUiLCJqdGkiOiIzNDZhNGNhNS0xNDM1LTQ4YzAtOWMwOS1lNDY4MzlmY2ZmOWIiLCJpYXQiOjE1MjY5NzM1ODEsImlzcyI6Imh0dHBzOi8vaW9waXBlLmNvbSIsImF1ZCI6Imh0dHBzOi8vaW9waXBlLmNvbSxodHRwczovL21ldHJpY3MtYXBpLmlvcGlwZS5jb20vZXZlbnQvLGh0dHBzOi8vZ3JhcGhxbC5pb3BpcGUuY29tIn0.QV8dNi_72XIblFveGWN1fEHPhJga7mjSlgfCrox6qWw" });
+const iopipeLib = require('@iopipe/core');
 
-// wrap your handler with iopipe
-exports.handler = iopipe(
-  function (event, context) {
+const iopipe = iopipeLib({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODUzOTI1Mi0zZmQ4LTQxNDctOTYwMi0yZjVjYWZjYzg5MzUiLCJqdGkiOiIzNDZhNGNhNS0xNDM1LTQ4YzAtOWMwOS1lNDY4MzlmY2ZmOWIiLCJpYXQiOjE1MjY5NzM1ODEsImlzcyI6Imh0dHBzOi8vaW9waXBlLmNvbSIsImF1ZCI6Imh0dHBzOi8vaW9waXBlLmNvbSxodHRwczovL21ldHJpY3MtYXBpLmlvcGlwZS5jb20vZXZlbnQvLGh0dHBzOi8vZ3JhcGhxbC5pb3BpcGUuY29tIn0.QV8dNi_72XIblFveGWN1fEHPhJga7mjSlgfCrox6qWw' });
+
+exports.handler = iopipe((event, context) => {
+  context.iopipe.metric('key', 'some-value');
+  context.iopipe.metric('another-key', 42);
+
     // run your code here normally
     if (!bucketName) {
-      callback(new Error(`S3 bucket not set`));
+      context.succeed(new Error(`S3 bucket not set`));
     }
     console.log(event)
+    const mark = context.iopipe.mark;
+
     if (event.http_method == "GET"){
-        getS3Object(event,callback);
+        getS3Object(event,context);
+        context.succeed('This is my serverless function! Get');
     }else{
-        putS3Object(event,callback);
-        HttpCall();
-        mysqlCall();
+        mark.start('database');
+            putS3Object(event);
+        mark.end('database');
+        mark.start('http');
+            HttpCall();
+        mark.end('http');
+        mark.start('mysql');
+            mysqlCall();
+        mark.end('mysql');
+
+
     }
     context.succeed('This is my serverless function!');
   }
