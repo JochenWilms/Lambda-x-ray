@@ -40,24 +40,27 @@ function genKey() {
 }
 
 function getS3Object(event,context){
-    var key = "2018:05:08:07:16:34";
-    if(event.body.key){
-        key = event.body.key;
-    }
-    s3.getObject({
-            Bucket: bucketName,
-            Key: key
-        }, function(err, data) {
-            // Handle any error and exit
-            if (err)
-                console.log(err);
-            let dataobject = data.Body.toString('utf-8');
-            console.log(dataobject);
-            context.succeed(dataobject);
-        });
+    mark.start('databaseget');
+        var key = "2018:05:08:07:16:34";
+        if(event.body.key){
+            key = event.body.key;
+        }
+        s3.getObject({
+                Bucket: bucketName,
+                Key: key
+            }, function(err, data) {
+                // Handle any error and exit
+                if (err)
+                    console.log(err);
+                let dataobject = data.Body.toString('utf-8');
+                console.log(dataobject);
+                context.succeed(dataobject);
+            });
+       mark.end('databaseget');
 }
 
 function putS3Object(event){
+       mark.start('databasePut');
         s3.putObject({
             Bucket: bucketName,
             Key: genKey(),
@@ -67,9 +70,11 @@ function putS3Object(event){
             console.log('Successfully uploaded package.');
 
         });
+       mark.end('databasePut');
 }
 
 function HttpCall(){
+  mark.start('http');
   var options = {
     host: 'www.google.com',
     path: '/index.html'
@@ -88,14 +93,17 @@ function HttpCall(){
       //console.log('BODY: ' + body);
       // ...and/or process the entire body here.
     })
+
   });
 
   req.on('error', function(e) {
     console.log('ERROR: ' + e.message);
   });
+  mark.end('http');
 }
 
 function mysqlCall(){
+   mark.start('mysql');
   var connection = mysql.createConnection({
      host     : 'remote-mysql3.servage.net',
      user     : 'cronosTest',
@@ -125,6 +133,7 @@ function mysqlCall(){
    });
    */
    console.log("end mysql");
+   mark.end('mysql');
 }
 
 var incrementing = 0;
@@ -132,6 +141,7 @@ var incrementing = 0;
 const iopipeLib = require('@iopipe/core');
 
 const iopipe = iopipeLib({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODUzOTI1Mi0zZmQ4LTQxNDctOTYwMi0yZjVjYWZjYzg5MzUiLCJqdGkiOiIzNDZhNGNhNS0xNDM1LTQ4YzAtOWMwOS1lNDY4MzlmY2ZmOWIiLCJpYXQiOjE1MjY5NzM1ODEsImlzcyI6Imh0dHBzOi8vaW9waXBlLmNvbSIsImF1ZCI6Imh0dHBzOi8vaW9waXBlLmNvbSxodHRwczovL21ldHJpY3MtYXBpLmlvcGlwZS5jb20vZXZlbnQvLGh0dHBzOi8vZ3JhcGhxbC5pb3BpcGUuY29tIn0.QV8dNi_72XIblFveGWN1fEHPhJga7mjSlgfCrox6qWw' });
+var mark = null;
 
 exports.handler = iopipe((event, context) => {
 
@@ -143,7 +153,7 @@ exports.handler = iopipe((event, context) => {
       context.succeed(new Error(`S3 bucket not set`));
     }
     console.log(event)
-    const mark = context.iopipe.mark;
+    mark = context.iopipe.mark;
 
     if (event.http_method == "GET"){
         context.iopipe.label('simulated GET request');
@@ -151,22 +161,14 @@ exports.handler = iopipe((event, context) => {
         context.succeed('This is my serverless function! Get');
     }else{
         context.iopipe.label('simulated POST request');
-        mark.start('database');
-            putS3Object(event);
-        mark.end('database');
-        mark.start('http');
-            HttpCall();
-        mark.end('http');
-        mark.start('mysql');
-            mysqlCall();
-        mark.end('mysql');
-        mark.start('genkey');
-            genKey();
-        mark.end('genkey');
+        putS3Object(event);
+        HttpCall();
+        mysqlCall();
+        genKey();
 
         context.succeed('This is my serverless function!');
 
     }
 
-  }
-);
+
+});
