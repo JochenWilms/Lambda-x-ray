@@ -139,7 +139,6 @@ exports.handler = function(event, context, callback) {
   }
   coldStart = false;
 
-
   if (!bucketName) {
     callback(new Error(`S3 bucket not set`));
   }

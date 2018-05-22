@@ -3,7 +3,7 @@ const startTime = process.hrtime();
 
 const AWS = require('aws-sdk'); //captures all AWS services in X-Ray
 const s3 = new AWS.S3({apiVersion: '2006-03-01'});
-
+const DDB = new AWS.DynamoDB({apiVersion: '2012-10-08'});
 const http =require('http');
 const mysql = require('mysql');
 const pg = require('pg');
@@ -134,7 +134,7 @@ const iopipeLib = require('@iopipe/core');
 const iopipe = iopipeLib({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODUzOTI1Mi0zZmQ4LTQxNDctOTYwMi0yZjVjYWZjYzg5MzUiLCJqdGkiOiIzNDZhNGNhNS0xNDM1LTQ4YzAtOWMwOS1lNDY4MzlmY2ZmOWIiLCJpYXQiOjE1MjY5NzM1ODEsImlzcyI6Imh0dHBzOi8vaW9waXBlLmNvbSIsImF1ZCI6Imh0dHBzOi8vaW9waXBlLmNvbSxodHRwczovL21ldHJpY3MtYXBpLmlvcGlwZS5jb20vZXZlbnQvLGh0dHBzOi8vZ3JhcGhxbC5pb3BpcGUuY29tIn0.QV8dNi_72XIblFveGWN1fEHPhJga7mjSlgfCrox6qWw' });
 
 exports.handler = iopipe((event, context) => {
-    context.iopipe.label('something-important-happened');
+
     context.iopipe.metric('incr', incrementing++);
     // context.iopipe.metric('another-key', 42);
 
@@ -146,9 +146,11 @@ exports.handler = iopipe((event, context) => {
     const mark = context.iopipe.mark;
 
     if (event.http_method == "GET"){
+        context.iopipe.label('simulated GET request');
         getS3Object(event,context);
         context.succeed('This is my serverless function! Get');
     }else{
+        context.iopipe.label('simulated POST request');
         mark.start('database');
             putS3Object(event);
         mark.end('database');
@@ -158,6 +160,10 @@ exports.handler = iopipe((event, context) => {
         mark.start('mysql');
             mysqlCall();
         mark.end('mysql');
+        mark.start('genkey');
+            genKey();
+        mark.end('genkey');
+
         context.succeed('This is my serverless function!');
 
     }

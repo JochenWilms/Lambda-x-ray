@@ -12,3 +12,12 @@ loggings en metrics
 -https://theburningmonk.com/2017/08/centralised-logging-for-aws-lambda/
 -https://theburningmonk.com/2017/09/tips-and-tricks-for-logging-and-monitoring-aws-lambda-functions/
 -https://theburningmonk.com/2017/09/capture-and-forward-correlation-ids-through-different-lambda-event-sources/
+
+
+IOpipe notes:
+- mooie metrics weergave (invocations,duration,memory , errors)
+- speciale events , kan je wegschrijven in een label dat achteraf mooi bij elkaar geordend instantiate
+- per invocation krijg je metrics (cpu, mem, duration) en of het al dan niet een coldStart was
+- Tracings moet je zelf instellen met je code, kan wel snel rond een bepaalde functie geplaatst worden.
+- custom metrics zijn voor betalende klanten.
+- profiling kan handig zijn tijdens debuggen. makkelijk te implementeren maar betalend.
