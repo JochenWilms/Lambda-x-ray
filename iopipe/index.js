@@ -127,15 +127,16 @@ function mysqlCall(){
    console.log("end mysql");
 }
 
-
+var incrementing = 0;
 // instantiate the iopipe library
 const iopipeLib = require('@iopipe/core');
 
 const iopipe = iopipeLib({ token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzODUzOTI1Mi0zZmQ4LTQxNDctOTYwMi0yZjVjYWZjYzg5MzUiLCJqdGkiOiIzNDZhNGNhNS0xNDM1LTQ4YzAtOWMwOS1lNDY4MzlmY2ZmOWIiLCJpYXQiOjE1MjY5NzM1ODEsImlzcyI6Imh0dHBzOi8vaW9waXBlLmNvbSIsImF1ZCI6Imh0dHBzOi8vaW9waXBlLmNvbSxodHRwczovL21ldHJpY3MtYXBpLmlvcGlwZS5jb20vZXZlbnQvLGh0dHBzOi8vZ3JhcGhxbC5pb3BpcGUuY29tIn0.QV8dNi_72XIblFveGWN1fEHPhJga7mjSlgfCrox6qWw' });
 
 exports.handler = iopipe((event, context) => {
-  context.iopipe.metric('key', 'some-value');
-  context.iopipe.metric('another-key', 42);
+    context.iopipe.label('something-important-happened');
+    context.iopipe.metric('incr', incrementing++);
+    // context.iopipe.metric('another-key', 42);
 
     // run your code here normally
     if (!bucketName) {
@@ -157,9 +158,9 @@ exports.handler = iopipe((event, context) => {
         mark.start('mysql');
             mysqlCall();
         mark.end('mysql');
-
+        context.succeed('This is my serverless function!');
 
     }
-    context.succeed('This is my serverless function!');
+
   }
 );
