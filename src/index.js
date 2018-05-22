@@ -14,8 +14,6 @@ console.log('Loading hello world function');
 
 var bucketName = process.env.S3_BUCKET;
 
-var app = express();
-
 
 function genKey() {
     var segment = new AWSXRay.Segment(name, [optional root ID], [optional parent ID]);
@@ -141,24 +139,6 @@ exports.handler = function(event, context, callback) {
   }
   coldStart = false;
 
-  // app.use(AWSXRay.express.openSegment('defaultName'));               //required at the start of your routes
-  //
-  // app.get('/', function (req, res) {
-  //   res.render('index');
-  //   var host = 'google.com';
-  //
-  //   AWSXRay.captureAsyncFunc('send', function(subsegment) {
-  //     //'subsegment' here is the newly created and exposed subsegment for the async
-  //     //request, and must be closed manually (this ensures timing data is correct)
-  //     sendRequest(host, function() {
-  //       console.log("rendering!");
-  //       res.render('index');
-  //       subsegment.close();
-  //     });
-  //   });
-  // });
-  //
-  // app.use(AWSXRay.express.closeSegment());
 
   if (!bucketName) {
     callback(new Error(`S3 bucket not set`));
